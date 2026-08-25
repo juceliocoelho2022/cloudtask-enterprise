@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cloudtask-postgres
+    environment:
+      POSTGRES_DB: cloudtask
+      POSTGRES_USER: cloudtask
+      POSTGRES_PASSWORD: cloudtask
+    ports:
+      - "5432:5432"
+    volumes:
+      - cloudtask_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudtask -d cloudtask"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  backend:
+    build:
+      context: ./backend
+    container_name: cloudtask-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/cloudtask
+      SPRING_DATASOURCE_USERNAME: cloudtask
+      SPRING_DATASOURCE_PASSWORD: cloudtask
+      APP_JWT_SECRET: change-this-development-secret-key-with-at-least-32-characters
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:5173
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: cloudtask-frontend
+    environment:
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  cloudtask_postgres:
