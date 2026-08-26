@@ -32,7 +32,7 @@ POST /api/v1/auth/register
 
 Após autenticação, o usuário acessa a área principal de tarefas.
 
-![Dashboard](screenshots/Dashboard%20.png)
+![Dashboard](screenshots/dashboard.png)
 
 A aplicação atual permite visualizar tarefas e acompanhar o status do CRUD.
 

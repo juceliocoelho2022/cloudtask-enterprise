@@ -123,7 +123,7 @@ Grafana
 
 ### Dashboard
 
-![CloudTask Dashboard](docs/screenshots/Dashboard%20.png)
+![CloudTask Dashboard](docs/screenshots/dashboard.png)
 
 ### Criar tarefa
 
