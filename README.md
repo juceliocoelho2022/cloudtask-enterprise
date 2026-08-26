@@ -109,6 +109,44 @@ Prometheus
 Grafana
 ```
 
+## Demonstração visual
+
+> Algumas imagens abaixo são mockups conceituais usados para demonstrar a evolução visual planejada do produto. Os fluxos funcionais já validados são autenticação JWT, CRUD de tarefas, Swagger/OpenAPI, Prometheus, Grafana, testes automatizados e JaCoCo.
+
+### Login
+
+![CloudTask Login](docs/screenshots/login.png)
+
+### Cadastro
+
+![CloudTask Register](docs/screenshots/register.png)
+
+### Dashboard
+
+![CloudTask Dashboard](docs/screenshots/Dashboard%20.png)
+
+### Criar tarefa
+
+![Criar tarefa](docs/screenshots/create-task.png)
+
+### Swagger / OpenAPI
+
+![Swagger](docs/screenshots/swagger.png)
+
+### Prometheus
+
+![Prometheus Targets](docs/screenshots/prometheus-targets.png)
+
+### Grafana
+
+![Grafana Dashboard](docs/screenshots/grafana-dashboard.png)
+
+### Cobertura de testes
+
+![JaCoCo Coverage](docs/screenshots/jacoco-coverage.png)
+
+Para o passo a passo completo, consulte o [Guia Visual de Uso](docs/usage-guide.md).
+
 ## Funcionalidades v0.1
 
 - cadastro de usuário
