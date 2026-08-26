@@ -36,6 +36,14 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 - **Swagger UI** — documentação e testes interativos dos endpoints
 - **Postman** — collection para testes manuais da API
 
+### Qualidade e Testes
+
+- **JUnit 5** — testes automatizados
+- **Mockito** — testes unitários com mocks
+- **Testcontainers** — testes de integração com PostgreSQL real em container
+- **AssertJ** — assertions fluentes
+- **JaCoCo** — relatório de cobertura de testes
+
 ### DevOps e Containers
 
 - **Docker** — containerização dos serviços
@@ -97,6 +105,27 @@ PostgreSQL
 - Docker Compose
 - Pipelines CI para backend e frontend
 
+## Qualidade v0.2
+
+A versão v0.2 adiciona uma camada profissional de testes automatizados:
+
+- testes unitários do `AuthService` com JUnit 5 e Mockito
+- testes unitários do `TaskService` com JUnit 5 e Mockito
+- cenários de sucesso e falha para autenticação e regras de negócio
+- teste de integração ponta a ponta com Spring Boot + Testcontainers + PostgreSQL 17
+- validação integrada de cadastro, login JWT e CRUD de tarefas
+- geração de relatório de cobertura com JaCoCo durante `mvn verify`
+- publicação do relatório JaCoCo como artifact do GitHub Actions
+
+Para executar os testes do backend:
+
+```bash
+cd backend
+mvn clean verify
+```
+
+> Os testes de integração com Testcontainers exigem Docker disponível no ambiente.
+
 ## Executar com Docker
 
 ```bash
@@ -128,7 +157,8 @@ Content-Type: application/json
 
 ## Roadmap
 
-- **v0.2** — JUnit, Mockito, Testcontainers e cobertura de testes
+- **v0.1** — autenticação JWT, CRUD, PostgreSQL, React e Docker
+- **v0.2** — JUnit, Mockito, Testcontainers e JaCoCo
 - **v0.3** — Prometheus + Grafana
 - **v0.4** — Terraform
 - **v0.5** — AWS ECR + ECS + RDS + ALB
