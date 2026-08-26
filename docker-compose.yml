@@ -43,5 +43,39 @@ services:
     depends_on:
       - backend
 
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    container_name: cloudtask-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - cloudtask_prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:13.2.0
+    container_name: cloudtask-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: cloudtask
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - cloudtask_grafana:/var/lib/grafana
+      - ./observability/grafana/provisioning/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - ./observability/grafana/provisioning/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml:ro
+      - ./observability/grafana/dashboards/cloudtask-overview.json:/var/lib/grafana/dashboards/cloudtask-overview.json:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
 volumes:
   cloudtask_postgres:
+  cloudtask_prometheus:
+  cloudtask_grafana:
