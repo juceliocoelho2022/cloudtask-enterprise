@@ -1,79 +1,83 @@
 # CloudTask Enterprise
 
-Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profissional, com foco em arquitetura escalável, segurança, automação, observabilidade e práticas de produção.
+Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profissional, com foco em arquitetura escalável, segurança, automação, qualidade, observabilidade e práticas de produção.
 
 ## Tech Stack
 
 ### Backend
 
-- **Java 21** — linguagem principal da API
-- **Spring Boot 3.5.x** — base da aplicação backend
-- **Spring Web** — construção da API REST
-- **Spring Data JPA** — persistência e acesso a dados
-- **Hibernate** — implementação ORM utilizada pelo JPA
-- **Spring Security** — autenticação e autorização
-- **JWT** — autenticação stateless baseada em token
-- **Jakarta Validation** — validação dos dados de entrada
-- **Lombok** — redução de código boilerplate
+- **Java 21**
+- **Spring Boot 3.5.x**
+- **Spring Web / REST**
+- **Spring Data JPA + Hibernate**
+- **Spring Security + JWT**
+- **Jakarta Validation**
+- **Lombok**
+- **Spring Boot Actuator**
+- **Micrometer**
 
 ### Banco de Dados
 
-- **PostgreSQL 17** — banco de dados relacional
-- **Flyway** — versionamento e migração do schema
+- **PostgreSQL 17**
+- **Flyway**
+- **HikariCP**
 
 ### Frontend
 
-- **React 19** — construção da interface web
-- **Vite** — build tool e ambiente de desenvolvimento frontend
-- **JavaScript / JSX** — implementação dos componentes e regras da interface
-- **CSS3** — estilização responsiva da aplicação
-- **Nginx** — servidor web do frontend em container
+- **React 19**
+- **Vite**
+- **JavaScript / JSX**
+- **CSS3**
+- **Nginx**
 
 ### API e Documentação
 
-- **REST / JSON** — padrão de comunicação entre frontend e backend
-- **OpenAPI** — especificação da API
-- **Swagger UI** — documentação e testes interativos dos endpoints
-- **Postman** — collection para testes manuais da API
+- **REST / JSON**
+- **OpenAPI 3**
+- **Swagger UI / Springdoc**
+- **Postman**
 
 ### Qualidade e Testes
 
-- **JUnit 5** — testes automatizados
-- **Mockito** — testes unitários com mocks
-- **Testcontainers** — testes de integração com PostgreSQL real em container
-- **AssertJ** — assertions fluentes
-- **JaCoCo** — relatório de cobertura de testes
+- **JUnit 5**
+- **Mockito**
+- **Testcontainers**
+- **AssertJ**
+- **JaCoCo**
+- testes de serviços, tratamento de exceções e integração ponta a ponta com PostgreSQL real
 
 ### DevOps e Containers
 
-- **Docker** — containerização dos serviços
-- **Docker Compose** — orquestração local de frontend, backend e PostgreSQL
-- **Git** — controle de versão
-- **GitHub** — hospedagem e colaboração do código
-- **GitHub Actions** — pipelines de CI para backend e frontend
+- **Docker**
+- **Docker Compose**
+- **Git / GitHub**
+- **GitHub Actions**
 
 ### Observabilidade
 
-- **Spring Boot Actuator** — health checks, métricas e informações operacionais
-- **Prometheus** — planejado para coleta de métricas
-- **Grafana** — planejado para dashboards e visualização de métricas
+- **Spring Boot Actuator**
+- **Micrometer Prometheus Registry**
+- **Prometheus 3.14.0**
+- **Grafana 13.2.0**
+- dashboard provisionado automaticamente
+- métricas HTTP, JVM, CPU, HikariCP e uptime
 
 ### Cloud e Infraestrutura — Roadmap
 
-- **AWS ECR** — registro de imagens Docker
-- **AWS ECS** — execução dos containers
-- **AWS RDS PostgreSQL** — banco de dados gerenciado
-- **AWS Application Load Balancer** — balanceamento de carga e health checks
-- **AWS Certificate Manager** — certificados TLS/HTTPS
-- **AWS Route 53** — DNS
-- **AWS Secrets Manager / SSM Parameter Store** — gerenciamento de segredos
-- **Terraform** — Infrastructure as Code
+- **Terraform**
+- **AWS ECR**
+- **AWS ECS / Fargate**
+- **AWS RDS PostgreSQL**
+- **Application Load Balancer**
+- **AWS Certificate Manager / HTTPS**
+- **Route 53**
+- **Secrets Manager / SSM Parameter Store**
 
 ### IA — Roadmap
 
-- **MCP Server** — integração controlada entre agentes de IA e os recursos da plataforma
+- **MCP Server** para integração controlada entre agentes de IA e recursos da plataforma
 
-## Arquitetura inicial
+## Arquitetura v0.3
 
 ```text
 Browser
@@ -88,48 +92,74 @@ Spring Boot REST API
    | JPA / Hibernate
    v
 PostgreSQL
+
+Spring Boot Actuator + Micrometer
+   |
+   | /actuator/prometheus
+   v
+Prometheus
+   |
+   v
+Grafana
 ```
 
 ## Funcionalidades v0.1
 
-- Cadastro de usuário
-- Login com JWT
+- cadastro de usuário
+- login com JWT
 - CRUD de tarefas
-- Filtro por status
-- Prioridades de tarefas
-- Validação de dados
-- Tratamento global de exceções
-- Health check
+- filtro por status
+- prioridades e prazo
+- validação de dados
+- tratamento global de exceções
 - Swagger/OpenAPI
-- Migração de banco com Flyway
+- Flyway
 - Docker Compose
-- Pipelines CI para backend e frontend
+- CI de backend e frontend
 
 ## Qualidade v0.2
 
-A versão v0.2 adiciona uma camada profissional de testes automatizados:
+A v0.2 adiciona testes automatizados e cobertura de código:
 
-- testes unitários do `AuthService` com JUnit 5 e Mockito
-- testes unitários do `TaskService` com JUnit 5 e Mockito
-- cenários de sucesso e falha para autenticação e regras de negócio
-- teste de integração ponta a ponta com Spring Boot + Testcontainers + PostgreSQL 17
-- validação integrada de cadastro, login JWT e CRUD de tarefas
-- geração de relatório de cobertura com JaCoCo durante `mvn verify`
-- publicação do relatório JaCoCo como artifact do GitHub Actions
+- testes unitários de `AuthService`
+- testes unitários de `TaskService`
+- testes do `GlobalExceptionHandler`
+- cenários 400, 401, 404, 409 e 500
+- teste de integração com Spring Boot + Testcontainers + PostgreSQL 17
+- fluxo integrado de cadastro, login JWT e CRUD de tarefas
+- relatório JaCoCo gerado por `mvn clean verify`
+- artifact JaCoCo publicado pelo GitHub Actions
+- compatibilidade local do Testcontainers com Docker Desktop 29 via `docker-java.properties`
 
-Para executar os testes do backend:
+Para executar:
 
 ```bash
 cd backend
 mvn clean verify
 ```
 
-> Os testes de integração com Testcontainers exigem Docker disponível no ambiente.
+> Testcontainers exige Docker disponível no ambiente.
 
-## Executar com Docker
+## Observabilidade v0.3
+
+A v0.3 adiciona uma stack de observabilidade local reproduzível:
+
+- endpoint Prometheus em `/actuator/prometheus`
+- coleta automática pelo Prometheus a cada 10 segundos
+- datasource Prometheus provisionado automaticamente no Grafana
+- dashboard `CloudTask Enterprise — Overview` provisionado por arquivo
+- taxa de requisições
+- taxa de erros HTTP 5xx
+- latência HTTP p95
+- heap da JVM
+- CPU do processo
+- conexões ativas HikariCP
+- uptime da aplicação
+
+## Executar toda a plataforma
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
 Serviços:
@@ -138,11 +168,23 @@ Serviços:
 - Backend: `http://localhost:8080`
 - Swagger: `http://localhost:8080/swagger-ui.html`
 - Health: `http://localhost:8080/actuator/health`
+- Métricas Prometheus da API: `http://localhost:8080/actuator/prometheus`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
 - PostgreSQL: `localhost:5432`
 
-## Usuário de demonstração
+### Grafana local
 
-Crie um usuário pela tela de registro ou via API:
+```text
+Usuário: admin
+Senha: cloudtask
+```
+
+No Grafana, abra a pasta **CloudTask** e o dashboard **CloudTask Enterprise — Overview**.
+
+Para gerar tráfego e alimentar os gráficos, use normalmente o frontend, Swagger ou Postman.
+
+## Usuário de demonstração
 
 ```http
 POST /api/v1/auth/register
@@ -157,17 +199,17 @@ Content-Type: application/json
 
 ## Roadmap
 
-- **v0.1** — autenticação JWT, CRUD, PostgreSQL, React e Docker
-- **v0.2** — JUnit, Mockito, Testcontainers e JaCoCo
-- **v0.3** — Prometheus + Grafana
+- **v0.1 ✅** — JWT, CRUD, PostgreSQL, React e Docker
+- **v0.2 ✅** — JUnit, Mockito, Testcontainers e JaCoCo
+- **v0.3 ✅** — Micrometer, Prometheus e Grafana
 - **v0.4** — Terraform
 - **v0.5** — AWS ECR + ECS + RDS + ALB
 - **v0.6** — CI/CD completo com deploy automatizado
 - **v0.7** — MCP Server e integração com IA
-- **v1.0** — observabilidade, segurança, resiliência e documentação final
+- **v1.0** — segurança, resiliência, alertas e documentação final
 
 ## Segurança
 
-O segredo JWT do `docker-compose.yml` é utilizado apenas para desenvolvimento.
+O segredo JWT e a senha do Grafana definidos no `docker-compose.yml` são exclusivos do ambiente local de desenvolvimento.
 
-Em produção, os segredos deverão ser armazenados em serviços como **AWS Secrets Manager** ou **AWS Systems Manager Parameter Store**, evitando credenciais sensíveis versionadas no repositório.
+Em produção, credenciais devem ser armazenadas em serviços como **AWS Secrets Manager** ou **AWS Systems Manager Parameter Store**. O endpoint `/actuator/prometheus`, embora liberado para a stack local, deve ser protegido por rede privada, autenticação ou política equivalente no ambiente cloud.
