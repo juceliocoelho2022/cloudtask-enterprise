@@ -33,14 +33,16 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
     private final Environment environment;
 
     @Value("${app.oauth.frontend-redirect:http://localhost:5173}")
     private String oauthFrontendRedirect;
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler
+    ) throws Exception {
         boolean oauthEnabled = environment.acceptsProfiles(Profiles.of("oauth"));
 
         http
