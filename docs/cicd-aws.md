@@ -45,6 +45,8 @@ ALB health validation
 
 O workflow usa `permissions: id-token: write` somente para solicitar um token OIDC do GitHub. A IAM trust policy restringe o acesso ao repositório CloudTask Enterprise e à branch `main`.
 
+Como o repositório usa o formato imutável atual de subject OIDC do GitHub, a trust policy inclui os IDs imutáveis do owner e do repositório, além dos nomes e da branch. Isso evita falhas de `sts:AssumeRoleWithWebIdentity` causadas pelo formato legado de `sub` e reduz risco em cenários de rename ou namespace reuse.
+
 A role de deploy recebe somente as permissões necessárias para:
 
 - autenticar e publicar imagens nos dois repositórios ECR do projeto;
