@@ -31,3 +31,6 @@ terraform.rc
 # OS
 .DS_Store
 Thumbs.db
+
+# Terraform backend local config
+**/backend.hcl
