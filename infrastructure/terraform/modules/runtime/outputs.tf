@@ -23,6 +23,16 @@ output "backend_service_name" {
   value       = aws_ecs_service.backend.name
 }
 
+output "ecs_execution_role_arn" {
+  description = "ARN da IAM execution role usada pelas tasks ECS."
+  value       = aws_iam_role.ecs_execution.arn
+}
+
+output "ecs_task_role_arn" {
+  description = "ARN da IAM task role usada pelas tasks ECS."
+  value       = aws_iam_role.ecs_task.arn
+}
+
 output "rds_endpoint" {
   description = "Endpoint DNS do PostgreSQL RDS."
   value       = aws_db_instance.postgres.address
