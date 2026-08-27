@@ -1,0 +1,10 @@
+project_name            = "cloudtask-enterprise"
+environment             = "dev"
+aws_region              = "sa-east-1"
+vpc_cidr                = "10.20.0.0/16"
+availability_zone_count = 2
+
+tags = {
+  Owner       = "portfolio"
+  Application = "cloudtask"
+}

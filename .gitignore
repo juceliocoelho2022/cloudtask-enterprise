@@ -16,6 +16,18 @@ frontend/dist/
 .env.*
 !.env.example
 
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+.terraformrc
+terraform.rc
+
 # OS
 .DS_Store
 Thumbs.db
