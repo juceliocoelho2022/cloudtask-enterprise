@@ -144,7 +144,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-resource "aws_lb_listener_rule" "backend_routes" {
+resource "aws_lb_listener_rule" "backend_api_routes" {
   listener_arn = aws_lb_listener.http.arn
   priority     = 10
 
@@ -158,7 +158,24 @@ resource "aws_lb_listener_rule" "backend_routes" {
       values = [
         "/api/*",
         "/oauth2/*",
-        "/login/oauth2/*",
+        "/login/oauth2/*"
+      ]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "backend_platform_routes" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+
+  condition {
+    path_pattern {
+      values = [
         "/actuator/*",
         "/swagger-ui*",
         "/v3/api-docs*"
@@ -426,7 +443,10 @@ resource "aws_ecs_service" "backend" {
     container_port   = 8080
   }
 
-  depends_on = [aws_lb_listener_rule.backend_routes]
+  depends_on = [
+    aws_lb_listener_rule.backend_api_routes,
+    aws_lb_listener_rule.backend_platform_routes
+  ]
 
   tags = var.tags
 }
