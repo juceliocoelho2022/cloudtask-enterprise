@@ -416,6 +416,10 @@ resource "aws_ecs_service" "frontend" {
 
   depends_on = [aws_lb_listener.http]
 
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   tags = var.tags
 }
 
@@ -447,6 +451,10 @@ resource "aws_ecs_service" "backend" {
     aws_lb_listener_rule.backend_api_routes,
     aws_lb_listener_rule.backend_platform_routes
   ]
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   tags = var.tags
 }
