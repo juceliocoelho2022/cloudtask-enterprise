@@ -17,6 +17,9 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 - **Spring Web / REST**
 - **Spring Data JPA + Hibernate**
 - **Spring Security + JWT**
+- **Spring Security OAuth2 Client**
+- **Google OAuth 2.0**
+- **GitHub OAuth App**
 - **Jakarta Validation**
 - **Lombok**
 - **Spring Boot Actuator**
@@ -83,7 +86,7 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 
 - **MCP Server** para integração controlada entre agentes de IA e recursos da plataforma
 
-## Arquitetura v0.3
+## Arquitetura atual
 
 ```text
 Browser
@@ -91,13 +94,23 @@ Browser
    v
 React + Nginx
    |
-   | HTTP/JSON + JWT
+   | Login tradicional ou OAuth2
    v
-Spring Boot REST API
+Spring Boot + Spring Security
+   |
+   | JWT próprio do CloudTask
+   v
+REST API
    |
    | JPA / Hibernate
    v
 PostgreSQL
+
+Google / GitHub
+   |
+   | OAuth2 authorization code
+   v
+Spring Security OAuth2 Client
 
 Spring Boot Actuator + Micrometer
    |
@@ -111,7 +124,7 @@ Grafana
 
 ## Demonstração visual
 
-> Algumas imagens abaixo são mockups conceituais usados para demonstrar a evolução visual planejada do produto. Os fluxos funcionais já validados são autenticação JWT, CRUD de tarefas, Swagger/OpenAPI, Prometheus, Grafana, testes automatizados e JaCoCo.
+> Algumas imagens abaixo são mockups conceituais usados para demonstrar a evolução visual planejada do produto. Os fluxos funcionais já validados são autenticação JWT, login social com Google e GitHub, CRUD de tarefas, Swagger/OpenAPI, Prometheus, Grafana, testes automatizados e JaCoCo.
 
 ### Login
 
@@ -200,7 +213,22 @@ A v0.3 adiciona uma stack de observabilidade local reproduzível:
 - conexões ativas HikariCP
 - uptime da aplicação
 
+## Autenticação social
+
+O CloudTask suporta login com **Google** e **GitHub** usando Spring Security OAuth2 Client.
+
+Após a autenticação no provedor, o backend:
+
+1. recebe o callback OAuth2;
+2. localiza ou cria a conta do usuário;
+3. emite um JWT próprio do CloudTask;
+4. redireciona o navegador de volta ao frontend autenticado.
+
+As credenciais OAuth ficam somente no `.env` local, que é ignorado pelo Git. Consulte o guia completo em [docs/oauth-login.md](docs/oauth-login.md).
+
 ## Executar toda a plataforma
+
+Para autenticação social, copie `.env.example` para `.env` e preencha os Client IDs e Client Secrets reais antes de subir a stack.
 
 ```bash
 docker compose up --build -d
@@ -215,7 +243,8 @@ Serviços:
 - Métricas Prometheus da API: `http://localhost:8080/actuator/prometheus`
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000`
-- PostgreSQL: `localhost:5432`
+- PostgreSQL no host: `localhost:5433`
+- PostgreSQL na rede Docker: `postgres:5432`
 
 ### Grafana local
 
@@ -246,6 +275,7 @@ Content-Type: application/json
 - **v0.1 ✅** — JWT, CRUD, PostgreSQL, React e Docker
 - **v0.2 ✅** — JUnit, Mockito, Testcontainers e JaCoCo
 - **v0.3 ✅** — Micrometer, Prometheus e Grafana
+- **Social Login ✅** — Google OAuth 2.0 + GitHub OAuth App + JWT próprio
 - **v0.4** — Terraform
 - **v0.5** — AWS ECR + ECS + RDS + ALB
 - **v0.6** — CI/CD completo com deploy automatizado
@@ -255,5 +285,7 @@ Content-Type: application/json
 ## Segurança
 
 O segredo JWT e a senha do Grafana definidos no `docker-compose.yml` são exclusivos do ambiente local de desenvolvimento.
+
+Os Client Secrets de Google e GitHub ficam somente no arquivo `.env`, que não deve ser versionado. Se um secret for exposto, ele deve ser rotacionado no provedor e substituído localmente.
 
 Em produção, credenciais devem ser armazenadas em serviços como **AWS Secrets Manager** ou **AWS Systems Manager Parameter Store**. O endpoint `/actuator/prometheus`, embora liberado para a stack local, deve ser protegido por rede privada, autenticação ou política equivalente no ambiente cloud.

@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: cloudtask
       POSTGRES_PASSWORD: cloudtask
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - cloudtask_postgres:/var/lib/postgresql/data
     healthcheck:
