@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { API_URL, api } from './api'
+import Sidebar from './components/Sidebar'
+import StatCard from './components/StatCard'
+import TaskForm from './components/TaskForm'
+import TaskList from './components/TaskList'
 
 const emptyTask = {
   title: '',
@@ -28,6 +32,13 @@ function GithubIcon() {
   )
 }
 
+function isOverdue(task) {
+  if (!task.dueDate || task.status === 'DONE') return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return new Date(`${task.dueDate}T00:00:00`) < today
+}
+
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('cloudtask_token'))
   const [mode, setMode] = useState('login')
@@ -35,19 +46,27 @@ export default function App() {
   const [remember, setRemember] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [authTheme, setAuthTheme] = useState('light')
+  const [appTheme, setAppTheme] = useState(localStorage.getItem('cloudtask_theme') || 'dark')
   const [tasks, setTasks] = useState([])
   const [task, setTask] = useState(emptyTask)
   const [editingId, setEditingId] = useState(null)
-  const [filter, setFilter] = useState('')
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState('')
+  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  const userName = localStorage.getItem('cloudtask_name') || 'Usuário'
 
   async function loadTasks() {
     if (!token) return
+    setLoading(true)
     try {
-      const suffix = filter ? `?status=${filter}` : ''
-      setTasks(await api(`/api/v1/tasks${suffix}`))
+      setTasks(await api('/api/v1/tasks'))
     } catch (e) {
       setMessage(e.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -74,7 +93,13 @@ export default function App() {
 
   useEffect(() => {
     loadTasks()
-  }, [token, filter])
+  }, [token])
+
+  useEffect(() => {
+    if (!message || !token) return undefined
+    const timer = window.setTimeout(() => setMessage(''), 4200)
+    return () => window.clearTimeout(timer)
+  }, [message, token])
 
   async function submitAuth(e) {
     e.preventDefault()
@@ -113,11 +138,13 @@ export default function App() {
           method: 'PUT',
           body: JSON.stringify(payload)
         })
+        setMessage('Tarefa atualizada com sucesso.')
       } else {
         await api('/api/v1/tasks', {
           method: 'POST',
           body: JSON.stringify(payload)
         })
+        setMessage('Tarefa criada com sucesso.')
       }
       setTask(emptyTask)
       setEditingId(null)
@@ -128,9 +155,10 @@ export default function App() {
   }
 
   async function removeTask(id) {
-    if (!confirm('Excluir esta tarefa?')) return
+    if (!confirm('Excluir esta tarefa? Esta ação não poderá ser desfeita.')) return
     try {
       await api(`/api/v1/tasks/${id}`, { method: 'DELETE' })
+      setMessage('Tarefa excluída.')
       await loadTasks()
     } catch (e) {
       setMessage(e.message)
@@ -146,7 +174,18 @@ export default function App() {
       priority: item.priority,
       dueDate: item.dueDate || ''
     })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.setTimeout(() => document.getElementById('task-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+  }
+
+  function newTask() {
+    setEditingId(null)
+    setTask(emptyTask)
+    window.setTimeout(() => document.getElementById('task-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setTask(emptyTask)
   }
 
   function logout() {
@@ -154,13 +193,32 @@ export default function App() {
     localStorage.removeItem('cloudtask_name')
     setToken(null)
     setTasks([])
+    setMessage('')
+  }
+
+  function toggleAppTheme() {
+    const nextTheme = appTheme === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('cloudtask_theme', nextTheme)
+    setAppTheme(nextTheme)
   }
 
   const stats = useMemo(() => ({
     total: tasks.length,
-    done: tasks.filter(t => t.status === 'DONE').length,
-    critical: tasks.filter(t => t.priority === 'CRITICAL').length
+    todo: tasks.filter(item => item.status === 'TODO').length,
+    inProgress: tasks.filter(item => item.status === 'IN_PROGRESS').length,
+    done: tasks.filter(item => item.status === 'DONE').length,
+    overdue: tasks.filter(isOverdue).length
   }), [tasks])
+
+  const filteredTasks = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    return tasks.filter(item => {
+      const matchesSearch = !term || `${item.title} ${item.description || ''}`.toLowerCase().includes(term)
+      const matchesStatus = !statusFilter || item.status === statusFilter
+      const matchesPriority = !priorityFilter || item.priority === priorityFilter
+      return matchesSearch && matchesStatus && matchesPriority
+    })
+  }, [tasks, search, statusFilter, priorityFilter])
 
   if (!token) {
     return (
@@ -310,96 +368,77 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
-      <header>
-        <div>
-          <div className="brand">☁️ CloudTask <span>Enterprise</span></div>
-          <p className="muted">Cloud-native Task Management Platform</p>
-        </div>
-        <button className="secondary" onClick={logout}>Sair</button>
-      </header>
+    <div className={`enterprise-app ${appTheme}`}>
+      <Sidebar userName={userName} onNewTask={newTask} onLogout={logout} />
 
-      <section className="stats">
-        <article><b>{stats.total}</b><span>Tarefas</span></article>
-        <article><b>{stats.done}</b><span>Concluídas</span></article>
-        <article><b>{stats.critical}</b><span>Críticas</span></article>
-      </section>
-
-      <section className="grid">
-        <article className="panel">
-          <h2>{editingId ? 'Editar tarefa' : 'Nova tarefa'}</h2>
-          <form onSubmit={saveTask}>
-            <input
-              placeholder="Título"
-              value={task.title}
-              onChange={e => setTask({ ...task, title: e.target.value })}
-              required
-            />
-            <textarea
-              placeholder="Descrição"
-              rows="5"
-              value={task.description}
-              onChange={e => setTask({ ...task, description: e.target.value })}
-            />
-            <div className="row">
-              <select value={task.status} onChange={e => setTask({ ...task, status: e.target.value })}>
-                <option value="TODO">A fazer</option>
-                <option value="IN_PROGRESS">Em andamento</option>
-                <option value="DONE">Concluída</option>
-              </select>
-              <select value={task.priority} onChange={e => setTask({ ...task, priority: e.target.value })}>
-                <option value="LOW">Baixa</option>
-                <option value="MEDIUM">Média</option>
-                <option value="HIGH">Alta</option>
-                <option value="CRITICAL">Crítica</option>
-              </select>
-            </div>
-            <input
-              type="date"
-              value={task.dueDate}
-              onChange={e => setTask({ ...task, dueDate: e.target.value })}
-            />
-            <button>{editingId ? 'Salvar alterações' : 'Adicionar tarefa'}</button>
-            {editingId && (
-              <button type="button" className="secondary" onClick={() => {
-                setEditingId(null)
-                setTask(emptyTask)
-              }}>Cancelar</button>
-            )}
-          </form>
-          {message && <div className="message">{message}</div>}
-        </article>
-
-        <article className="panel">
-          <div className="list-head">
-            <h2>Minhas tarefas</h2>
-            <select value={filter} onChange={e => setFilter(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="TODO">A fazer</option>
-              <option value="IN_PROGRESS">Em andamento</option>
-              <option value="DONE">Concluídas</option>
-            </select>
+      <main className="dashboard-main">
+        <header className="dashboard-topbar">
+          <div>
+            <span className="topbar-eyebrow">CLOUDTASK WORKSPACE</span>
+            <h1>Olá, {userName.split(' ')[0]} 👋</h1>
+            <p>Acompanhe prioridades, prazos e evolução do seu trabalho em um só lugar.</p>
           </div>
 
-          <div className="task-list">
-            {tasks.length === 0 && <p className="muted">Nenhuma tarefa encontrada.</p>}
-            {tasks.map(item => (
-              <div className="task-card" key={item.id}>
-                <div className="task-top">
-                  <h3>{item.title}</h3>
-                  <span className={`badge ${item.priority.toLowerCase()}`}>{item.priority}</span>
-                </div>
-                <p>{item.description || 'Sem descrição'}</p>
-                <small>{item.status} {item.dueDate ? `• Prazo: ${item.dueDate}` : ''}</small>
-                <div className="actions">
-                  <button className="secondary" onClick={() => editTask(item)}>Editar</button>
-                  <button className="danger" onClick={() => removeTask(item.id)}>Excluir</button>
-                </div>
-              </div>
-            ))}
+          <div className="topbar-actions">
+            <button className="theme-action" type="button" onClick={toggleAppTheme} aria-label="Alternar tema do dashboard">
+              {appTheme === 'dark' ? '☀' : '☾'}
+            </button>
+            <button className="primary-action" type="button" onClick={newTask}>+ Nova tarefa</button>
           </div>
-        </article>
-      </section>
-    </main>
+        </header>
+
+        <section className="runtime-banner" id="overview">
+          <div>
+            <span className="runtime-pill"><i /> AWS RUNTIME ONLINE</span>
+            <h2>Operação cloud-native com visão executiva</h2>
+            <p>Frontend React e backend Spring Boot operando em ECS/Fargate, com RDS PostgreSQL, ALB, ECR, Secrets Manager e CloudWatch.</p>
+          </div>
+          <div className="runtime-metrics">
+            <div><strong>ECS</strong><span>Fargate</span></div>
+            <div><strong>RDS</strong><span>PostgreSQL</span></div>
+            <div><strong>ALB</strong><span>Healthy</span></div>
+          </div>
+        </section>
+
+        <section className="dashboard-stats" aria-label="Resumo das tarefas">
+          <StatCard label="Total" value={stats.total} hint="tarefas cadastradas" icon="▦" tone="blue" />
+          <StatCard label="A fazer" value={stats.todo} hint="aguardando execução" icon="○" tone="slate" />
+          <StatCard label="Em andamento" value={stats.inProgress} hint="trabalho em execução" icon="◔" tone="amber" />
+          <StatCard label="Concluídas" value={stats.done} hint="entregas finalizadas" icon="✓" tone="green" />
+          <StatCard label="Atrasadas" value={stats.overdue} hint="requerem atenção" icon="!" tone="red" />
+        </section>
+
+        <section className="workspace-grid">
+          <TaskList
+            tasks={filteredTasks}
+            loading={loading}
+            search={search}
+            setSearch={setSearch}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            onEdit={editTask}
+            onDelete={removeTask}
+            onNew={newTask}
+          />
+
+          <TaskForm
+            task={task}
+            setTask={setTask}
+            editingId={editingId}
+            onSubmit={saveTask}
+            onCancel={cancelEdit}
+          />
+        </section>
+
+        <footer className="dashboard-footer">
+          <span>CloudTask Enterprise · Professional Portfolio</span>
+          <span>Java 21 · Spring Boot · React · AWS · Terraform · CI/CD</span>
+        </footer>
+
+        {message && <div className="dashboard-toast" role="status">✓ {message}</div>}
+      </main>
+    </div>
   )
 }
