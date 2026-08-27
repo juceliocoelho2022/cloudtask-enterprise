@@ -1,10 +1,12 @@
 module "github_oidc" {
   source = "../../modules/github-oidc"
 
-  name_prefix       = local.name_prefix
-  aws_region        = var.aws_region
-  github_repository = var.github_repository
-  github_branch     = var.github_deploy_branch
+  name_prefix          = local.name_prefix
+  aws_region           = var.aws_region
+  github_repository    = var.github_repository
+  github_owner_id      = var.github_owner_id
+  github_repository_id = var.github_repository_id
+  github_branch        = var.github_deploy_branch
 
   create_oidc_provider       = var.create_github_oidc_provider
   existing_oidc_provider_arn = var.existing_github_oidc_provider_arn
