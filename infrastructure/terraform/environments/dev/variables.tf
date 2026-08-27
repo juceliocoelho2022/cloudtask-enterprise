@@ -33,6 +33,60 @@ variable "availability_zone_count" {
   }
 }
 
+variable "backend_image_tag" {
+  description = "Tag imutável da imagem do backend publicada no ECR."
+  type        = string
+  default     = "sha-5dc48f0"
+}
+
+variable "frontend_image_tag" {
+  description = "Tag imutável da imagem do frontend publicada no ECR."
+  type        = string
+  default     = "sha-0e20d5b"
+}
+
+variable "database_name" {
+  description = "Nome do banco PostgreSQL da aplicação."
+  type        = string
+  default     = "cloudtask"
+}
+
+variable "database_username" {
+  description = "Usuário master do RDS. A senha é gerenciada pela AWS."
+  type        = string
+  default     = "cloudtask_admin"
+}
+
+variable "rds_engine_version" {
+  description = "Major version do PostgreSQL no RDS."
+  type        = string
+  default     = "17"
+}
+
+variable "rds_instance_class" {
+  description = "Classe da instância PostgreSQL no ambiente dev."
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "rds_allocated_storage" {
+  description = "Armazenamento inicial do RDS em GiB."
+  type        = number
+  default     = 20
+}
+
+variable "ecs_desired_count" {
+  description = "Número de tasks por serviço ECS no ambiente dev."
+  type        = number
+  default     = 1
+}
+
+variable "log_retention_days" {
+  description = "Dias de retenção dos logs no CloudWatch."
+  type        = number
+  default     = 14
+}
+
 variable "tags" {
   description = "Tags adicionais aplicadas aos recursos AWS."
   type        = map(string)

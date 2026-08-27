@@ -4,9 +4,9 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 
 ## Tecnologias / GitHub Topics
 
-[**java**](https://github.com/topics/java "Topic: java") · [**spring-boot**](https://github.com/topics/spring-boot "Topic: spring-boot") · [**spring-security**](https://github.com/topics/spring-security "Topic: spring-security") · [**jwt**](https://github.com/topics/jwt "Topic: jwt") · [**rest-api**](https://github.com/topics/rest-api "Topic: rest-api") · [**react**](https://github.com/topics/react "Topic: react") · [**vite**](https://github.com/topics/vite "Topic: vite") · [**postgresql**](https://github.com/topics/postgresql "Topic: postgresql") · [**flyway**](https://github.com/topics/flyway "Topic: flyway") · [**docker**](https://github.com/topics/docker "Topic: docker") · [**docker-compose**](https://github.com/topics/docker-compose "Topic: docker-compose") · [**prometheus**](https://github.com/topics/prometheus "Topic: prometheus") · [**grafana**](https://github.com/topics/grafana "Topic: grafana") · [**micrometer**](https://github.com/topics/micrometer "Topic: micrometer") · [**junit5**](https://github.com/topics/junit5 "Topic: junit5") · [**mockito**](https://github.com/topics/mockito "Topic: mockito") · [**testcontainers**](https://github.com/topics/testcontainers "Topic: testcontainers") · [**jacoco**](https://github.com/topics/jacoco "Topic: jacoco") · [**github-actions**](https://github.com/topics/github-actions "Topic: github-actions") · [**maven**](https://github.com/topics/maven "Topic: maven") · [**nginx**](https://github.com/topics/nginx "Topic: nginx") · [**cloud-native**](https://github.com/topics/cloud-native "Topic: cloud-native") · [**terraform**](https://github.com/topics/terraform "Topic: terraform") · [**aws**](https://github.com/topics/aws "Topic: aws") · [**amazon-ecr**](https://github.com/topics/amazon-ecr "Topic: amazon-ecr")
+[**java**](https://github.com/topics/java "Topic: java") · [**spring-boot**](https://github.com/topics/spring-boot "Topic: spring-boot") · [**spring-security**](https://github.com/topics/spring-security "Topic: spring-security") · [**jwt**](https://github.com/topics/jwt "Topic: jwt") · [**rest-api**](https://github.com/topics/rest-api "Topic: rest-api") · [**react**](https://github.com/topics/react "Topic: react") · [**vite**](https://github.com/topics/vite "Topic: vite") · [**postgresql**](https://github.com/topics/postgresql "Topic: postgresql") · [**flyway**](https://github.com/topics/flyway "Topic: flyway") · [**docker**](https://github.com/topics/docker "Topic: docker") · [**docker-compose**](https://github.com/topics/docker-compose "Topic: docker-compose") · [**prometheus**](https://github.com/topics/prometheus "Topic: prometheus") · [**grafana**](https://github.com/topics/grafana "Topic: grafana") · [**micrometer**](https://github.com/topics/micrometer "Topic: micrometer") · [**junit5**](https://github.com/topics/junit5 "Topic: junit5") · [**mockito**](https://github.com/topics/mockito "Topic: mockito") · [**testcontainers**](https://github.com/topics/testcontainers "Topic: testcontainers") · [**jacoco**](https://github.com/topics/jacoco "Topic: jacoco") · [**github-actions**](https://github.com/topics/github-actions "Topic: github-actions") · [**maven**](https://github.com/topics/maven "Topic: maven") · [**nginx**](https://github.com/topics/nginx "Topic: nginx") · [**cloud-native**](https://github.com/topics/cloud-native "Topic: cloud-native") · [**terraform**](https://github.com/topics/terraform "Topic: terraform") · [**aws**](https://github.com/topics/aws "Topic: aws") · [**amazon-ecr**](https://github.com/topics/amazon-ecr "Topic: amazon-ecr") · [**amazon-ecs**](https://github.com/topics/amazon-ecs "Topic: amazon-ecs") · [**aws-fargate**](https://github.com/topics/aws-fargate "Topic: aws-fargate") · [**amazon-rds**](https://github.com/topics/amazon-rds "Topic: amazon-rds")
 
-> Os tópicos acima representam tecnologias já utilizadas na versão atual do projeto. ECS/Fargate, RDS e Application Load Balancer permanecem no roadmap da próxima etapa.
+> A versão atual já possui runtime AWS implantado com Application Load Balancer, ECS/Fargate, PostgreSQL RDS, ECR, Secrets Manager, CloudWatch Logs e Terraform state remoto em S3.
 
 ## Tech Stack
 
@@ -30,6 +30,7 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 - **PostgreSQL 17**
 - **Flyway**
 - **HikariCP**
+- **Amazon RDS PostgreSQL** no ambiente AWS
 
 ### Frontend
 
@@ -61,6 +62,8 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 - **Docker Compose**
 - **Git / GitHub**
 - **GitHub Actions**
+- imagens backend e frontend versionadas por Git SHA
+- **Amazon ECR** com tags imutáveis
 
 ### Observabilidade
 
@@ -68,29 +71,34 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 - **Micrometer Prometheus Registry**
 - **Prometheus 3.14.0**
 - **Grafana 13.2.0**
-- dashboard provisionado automaticamente
+- **Amazon CloudWatch Logs** para as tasks ECS
+- dashboard provisionado automaticamente no ambiente local
 - métricas HTTP, JVM, CPU, HikariCP e uptime
 
 ### Cloud e Infraestrutura
 
 - **Terraform** com módulos reutilizáveis e ambiente `dev`
 - **AWS** na região `sa-east-1`
-- **Amazon VPC** com duas subnets públicas e duas privadas distribuídas em duas Availability Zones
+- **Amazon VPC** com duas subnets públicas e duas privadas em duas Availability Zones
 - **Internet Gateway**, route tables e associações de rota
-- **Security Groups** em camadas: ALB → backend → PostgreSQL
+- **Application Load Balancer** com roteamento por path
+- **Amazon ECS / Fargate** para frontend e backend
+- **Amazon RDS PostgreSQL 17** privado
+- **Security Groups** em camadas: ALB → frontend/backend → PostgreSQL
 - **Amazon ECR** para backend e frontend
+- **AWS Secrets Manager** para JWT e credencial master do RDS
+- **CloudWatch Logs** para frontend e backend
+- **Terraform remote state em Amazon S3** com locking nativo
 - tags de imagem imutáveis, scan on push e lifecycle policy no ECR
 - CI de Terraform com `fmt`, `init -backend=false` e `validate`
 
 ### Cloud — Próximas etapas
 
-- **AWS ECS / Fargate**
-- **AWS RDS PostgreSQL**
-- **Application Load Balancer**
+- **CI/CD completo** com build, push ECR e deploy ECS automatizado
 - **AWS Certificate Manager / HTTPS**
-- **Route 53**
-- **Secrets Manager / SSM Parameter Store**
-- backend remoto para o Terraform state
+- **Route 53** e domínio customizado
+- hardening de rede e observabilidade para ambiente de produção
+- ativação segura do OAuth social no domínio cloud
 
 ### IA — Roadmap
 
@@ -99,67 +107,40 @@ Plataforma cloud-native de gerenciamento de tarefas criada para portfólio profi
 ## Arquitetura atual
 
 ```text
-Browser
-   |
-   v
-React + Nginx
-   |
-   | Login tradicional ou OAuth2
-   v
-Spring Boot + Spring Security
-   |
-   | JWT próprio do CloudTask
-   v
-REST API
-   |
-   | JPA / Hibernate
-   v
-PostgreSQL
-
-Google / GitHub
-   |
-   | OAuth2 authorization code
-   v
-Spring Security OAuth2 Client
-
-Spring Boot Actuator + Micrometer
-   |
-   | /actuator/prometheus
-   v
-Prometheus
-   |
-   v
-Grafana
-```
-
-### Fundação AWS v0.4
-
-```text
 Internet
    |
    v
-[ Security Group do ALB ]
+Application Load Balancer :80
    |
-   | porta 8080
-   v
-[ Security Group do backend ]
+   +-- /* ----------------------> Frontend React + Nginx
+   |                              ECS / Fargate :80
    |
-   | porta 5432
-   v
-[ Security Group do PostgreSQL ]
-
-AWS VPC 10.20.0.0/16
-├── Public Subnet A
-├── Public Subnet B
-├── Private Subnet A
-└── Private Subnet B
+   +-- /api/* ------------------> Backend Spring Boot
+   +-- /oauth2/* ---------------> ECS / Fargate :8080
+   +-- /login/oauth2/* --------->
+   +-- /actuator/* ------------->
+                                      |
+                                      v
+                               PostgreSQL 17 / RDS
+                               subnets privadas
 
 Amazon ECR
-├── cloudtask-enterprise-dev-backend
-└── cloudtask-enterprise-dev-frontend
+├── backend image
+└── frontend image
+
+AWS Secrets Manager
+├── JWT signing secret
+└── RDS master credentials
+
+CloudWatch Logs
+├── /backend
+└── /frontend
+
+Terraform
+└── remote state em S3 + lockfile
 ```
 
-> A v0.4 provisiona a fundação de rede, segurança e registry. ECS/Fargate, RDS e o Application Load Balancer entram na v0.5.
+No ambiente `dev`, as tasks ECS usam subnets públicas com IP público para evitar NAT Gateway nesta fase. A entrada permanece restrita pelo Security Group do ALB. O RDS permanece privado.
 
 ## Demonstração visual
 
@@ -261,7 +242,7 @@ A v0.4 transforma a fundação cloud do projeto em infraestrutura como código e
 - VPC `10.20.0.0/16`
 - duas subnets públicas e duas privadas em duas Availability Zones
 - Internet Gateway e roteamento público
-- Security Groups com acesso em camadas para ALB, backend e PostgreSQL
+- Security Groups com acesso em camadas
 - ECR para backend e frontend com tags imutáveis, scan on push e lifecycle policy
 - `.terraform.lock.hcl` versionado para reprodutibilidade dos providers
 - state, `tfvars` e planos Terraform protegidos pelo `.gitignore`
@@ -269,9 +250,42 @@ A v0.4 transforma a fundação cloud do projeto em infraestrutura como código e
 - `terraform plan` inicial validado com **27 recursos a criar**
 - infraestrutura provisionada na AWS e validada posteriormente com **`No changes. Your infrastructure matches the configuration.`**
 - nenhuma execução automática de `terraform apply` no CI
-- sem NAT Gateway nesta etapa para evitar custo recorrente desnecessário
 
-> O state da v0.4 permanece local. A migração para backend remoto será tratada antes da evolução da infraestrutura para workloads mais críticos.
+## Remote State v0.4.1
+
+A v0.4.1 migra o Terraform state para um backend remoto S3:
+
+- backend S3 configurado de forma parcial
+- `backend.hcl` real mantido fora do Git
+- state remoto versionado no bucket S3
+- locking nativo com `use_lockfile = true`
+- backup do state criado antes da migração
+- migração validada sem recriação de recursos
+
+## Runtime AWS v0.5
+
+A v0.5 implanta o runtime da aplicação na AWS:
+
+- build e push das imagens backend e frontend no ECR
+- tags de imagem baseadas em Git SHA
+- Application Load Balancer público
+- roteamento por path para frontend e backend
+- frontend React + Nginx em ECS/Fargate
+- backend Java 21 + Spring Boot em ECS/Fargate
+- PostgreSQL 17 em RDS privado
+- Secrets Manager para JWT e credenciais do banco
+- CloudWatch Logs para os dois serviços
+- Security Groups específicos para ALB, frontend, backend e RDS
+- tasks ECS com `desired_count = 1`
+
+Validação real do deploy:
+
+- frontend ECS: **ACTIVE**, `1/1` task em execução
+- backend ECS: **ACTIVE**, `1/1` task em execução
+- ALB respondeu **HTTP 200** no frontend
+- `/actuator/health` respondeu **UP**
+- componente `db` do health check respondeu **UP**, confirmando conectividade backend → RDS
+- apply final concluído sem alterações ou destruições de recursos existentes
 
 ## Autenticação social
 
@@ -286,7 +300,9 @@ Após a autenticação no provedor, o backend:
 
 As credenciais OAuth ficam somente no `.env` local, que é ignorado pelo Git. Consulte o guia completo em [docs/oauth-login.md](docs/oauth-login.md).
 
-## Executar toda a plataforma
+No primeiro deploy AWS, o profile `oauth` permanece desativado até que os callbacks do Google e GitHub sejam configurados para o domínio cloud e os respectivos secrets sejam armazenados com segurança.
+
+## Executar toda a plataforma localmente
 
 Para autenticação social, copie `.env.example` para `.env` e preencha os Client IDs e Client Secrets reais antes de subir a stack.
 
@@ -337,7 +353,8 @@ Content-Type: application/json
 - **v0.3 ✅** — Micrometer, Prometheus e Grafana
 - **Social Login ✅** — Google OAuth 2.0 + GitHub OAuth App + JWT próprio
 - **v0.4 ✅** — Terraform + AWS VPC + subnets + Security Groups + ECR
-- **v0.5** — build/push de imagens + ECS/Fargate + RDS + ALB
+- **v0.4.1 ✅** — remote Terraform state em S3 + locking nativo
+- **v0.5 ✅** — build/push ECR + ECS/Fargate + RDS + ALB + Secrets Manager + CloudWatch Logs
 - **v0.6** — CI/CD completo com deploy automatizado
 - **v0.7** — MCP Server e integração com IA
 - **v1.0** — segurança, resiliência, alertas e documentação final
@@ -346,8 +363,10 @@ Content-Type: application/json
 
 O segredo JWT e a senha do Grafana definidos no `docker-compose.yml` são exclusivos do ambiente local de desenvolvimento.
 
-Os Client Secrets de Google e GitHub ficam somente no arquivo `.env`, que não deve ser versionado. Se um secret for exposto, ele deve ser rotacionado no provedor e substituído localmente.
+Os Client Secrets de Google e GitHub ficam somente no arquivo `.env` local e não devem ser versionados. Se um secret for exposto, ele deve ser rotacionado no provedor.
 
-Arquivos de state e planos Terraform não são versionados. O `.terraform.lock.hcl` é versionado para garantir consistência das versões e checksums dos providers.
+No ambiente AWS, o JWT secret e as credenciais master do RDS são entregues às tasks por meio do AWS Secrets Manager. O RDS não é publicamente acessível e aceita conexões somente a partir do Security Group do backend.
 
-Em produção, credenciais devem ser armazenadas em serviços como **AWS Secrets Manager** ou **AWS Systems Manager Parameter Store**. O endpoint `/actuator/prometheus`, embora liberado para a stack local, deve ser protegido por rede privada, autenticação ou política equivalente no ambiente cloud.
+Arquivos de state e planos Terraform não são versionados. O `.terraform.lock.hcl` é versionado para garantir consistência das versões e checksums dos providers. O state remoto fica no S3 com locking nativo.
+
+O endpoint `/actuator/prometheus`, embora liberado para a stack local e roteado no ambiente `dev`, deve ser protegido por rede privada, autenticação ou política equivalente antes de um ambiente de produção público.

@@ -46,3 +46,35 @@ module "ecr" {
   frontend_repository_name = "${local.name_prefix}-frontend"
   tags                     = local.common_tags
 }
+
+module "runtime" {
+  source = "../../modules/runtime"
+
+  name_prefix = local.name_prefix
+  aws_region  = var.aws_region
+  vpc_id      = module.vpc.vpc_id
+
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
+
+  alb_security_group_id      = module.security_groups.alb_security_group_id
+  frontend_security_group_id = module.security_groups.frontend_security_group_id
+  backend_security_group_id  = module.security_groups.backend_security_group_id
+  rds_security_group_id      = module.security_groups.rds_security_group_id
+
+  backend_repository_url  = module.ecr.backend_repository_url
+  frontend_repository_url = module.ecr.frontend_repository_url
+  backend_image_tag       = var.backend_image_tag
+  frontend_image_tag      = var.frontend_image_tag
+
+  database_name         = var.database_name
+  database_username     = var.database_username
+  rds_engine_version    = var.rds_engine_version
+  rds_instance_class    = var.rds_instance_class
+  rds_allocated_storage = var.rds_allocated_storage
+
+  desired_count      = var.ecs_desired_count
+  log_retention_days = var.log_retention_days
+
+  tags = local.common_tags
+}

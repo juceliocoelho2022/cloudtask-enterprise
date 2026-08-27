@@ -4,6 +4,17 @@ aws_region              = "sa-east-1"
 vpc_cidr                = "10.20.0.0/16"
 availability_zone_count = 2
 
+# Imagens já publicadas nos repositórios ECR com tags imutáveis.
+backend_image_tag  = "sha-5dc48f0"
+frontend_image_tag = "sha-0e20d5b"
+
+# Runtime dev: mantenha o tamanho mínimo enquanto estiver estudando/validando.
+rds_engine_version    = "17"
+rds_instance_class    = "db.t4g.micro"
+rds_allocated_storage = 20
+ecs_desired_count     = 1
+log_retention_days    = 14
+
 tags = {
   Owner       = "portfolio"
   Application = "cloudtask"

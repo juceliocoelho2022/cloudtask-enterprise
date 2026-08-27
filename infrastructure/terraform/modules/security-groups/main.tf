@@ -33,6 +33,32 @@ resource "aws_vpc_security_group_egress_rule" "alb_all" {
   ip_protocol       = "-1"
 }
 
+resource "aws_security_group" "frontend" {
+  name        = "${var.name_prefix}-frontend-sg"
+  description = "Ingress to CloudTask frontend only from the ALB"
+  vpc_id      = var.vpc_id
+
+  tags = merge(var.tags, {
+    Name = "${var.name_prefix}-frontend-sg"
+  })
+}
+
+resource "aws_vpc_security_group_ingress_rule" "frontend_from_alb" {
+  security_group_id            = aws_security_group.frontend.id
+  description                  = "CloudTask frontend traffic from ALB"
+  referenced_security_group_id = aws_security_group.alb.id
+  from_port                    = 80
+  to_port                      = 80
+  ip_protocol                  = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "frontend_all" {
+  security_group_id = aws_security_group.frontend.id
+  description       = "Outbound traffic for frontend container dependencies"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
 resource "aws_security_group" "backend" {
   name        = "${var.name_prefix}-backend-sg"
   description = "Ingress to CloudTask backend only from the ALB"
