@@ -64,13 +64,13 @@ module "runtime" {
 
   backend_repository_url  = module.ecr.backend_repository_url
   frontend_repository_url = module.ecr.frontend_repository_url
-  backend_image_tag        = var.backend_image_tag
-  frontend_image_tag       = var.frontend_image_tag
+  backend_image_tag       = var.backend_image_tag
+  frontend_image_tag      = var.frontend_image_tag
 
-  database_name        = var.database_name
-  database_username    = var.database_username
-  rds_engine_version   = var.rds_engine_version
-  rds_instance_class   = var.rds_instance_class
+  database_name         = var.database_name
+  database_username     = var.database_username
+  rds_engine_version    = var.rds_engine_version
+  rds_instance_class    = var.rds_instance_class
   rds_allocated_storage = var.rds_allocated_storage
 
   desired_count      = var.ecs_desired_count

@@ -39,8 +39,8 @@ resource "aws_db_instance" "postgres" {
   publicly_accessible    = false
   multi_az               = false
 
-  backup_retention_period = 1
-  apply_immediately        = true
+  backup_retention_period    = 1
+  apply_immediately          = true
   auto_minor_version_upgrade = true
 
   deletion_protection = false
