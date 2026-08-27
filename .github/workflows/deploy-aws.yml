@@ -1,0 +1,290 @@
+name: Deploy AWS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/deploy-aws.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: cloudtask-dev-deploy
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: sa-east-1
+  ECR_BACKEND_REPOSITORY: cloudtask-enterprise-dev-backend
+  ECR_FRONTEND_REPOSITORY: cloudtask-enterprise-dev-frontend
+  ECS_CLUSTER: cloudtask-enterprise-dev-cluster
+  ECS_BACKEND_SERVICE: cloudtask-enterprise-dev-backend
+  ECS_FRONTEND_SERVICE: cloudtask-enterprise-dev-frontend
+  BACKEND_TASK_FAMILY: cloudtask-enterprise-dev-backend
+  FRONTEND_TASK_FAMILY: cloudtask-enterprise-dev-frontend
+  ALB_NAME: cloudtask-enterprise-dev-alb
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Test backend
+        working-directory: backend
+        run: mvn -B clean verify
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  deploy:
+    name: Build, publish and deploy
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deployment role variable
+        shell: bash
+        run: |
+          if [ -z "${{ vars.AWS_ROLE_ARN }}" ]; then
+            echo "Repository variable AWS_ROLE_ARN is required before the first deployment."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: cloudtask-github-actions
+
+      - name: Resolve image coordinates
+        id: images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          IMAGE_TAG="sha-${GITHUB_SHA::7}-run${GITHUB_RUN_ATTEMPT}"
+
+          echo "registry=${REGISTRY}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "backend_image=${REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=${REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Amazon ECR
+        shell: bash
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin "${{ steps.images.outputs.registry }}"
+
+      - name: Build and push backend image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build -t "${{ steps.images.outputs.backend_image }}" ./backend
+          docker push "${{ steps.images.outputs.backend_image }}"
+
+      - name: Build and push frontend image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            --build-arg VITE_API_URL= \
+            -t "${{ steps.images.outputs.frontend_image }}" \
+            ./frontend
+          docker push "${{ steps.images.outputs.frontend_image }}"
+
+      - name: Register backend task definition revision
+        id: backend_task
+        shell: bash
+        env:
+          IMAGE: ${{ steps.images.outputs.backend_image }}
+        run: |
+          set -euo pipefail
+
+          aws ecs describe-task-definition \
+            --task-definition "$BACKEND_TASK_FAMILY" \
+            --query taskDefinition \
+            --output json > backend-current.json
+
+          jq --arg IMAGE "$IMAGE" '
+            {
+              family,
+              taskRoleArn,
+              executionRoleArn,
+              networkMode,
+              containerDefinitions,
+              volumes,
+              placementConstraints,
+              requiresCompatibilities,
+              cpu,
+              memory,
+              runtimePlatform,
+              ephemeralStorage,
+              proxyConfiguration,
+              inferenceAccelerators,
+              ipcMode,
+              pidMode
+            }
+            | with_entries(select(.value != null))
+            | .containerDefinitions = (
+                .containerDefinitions
+                | map(if .name == "backend" then .image = $IMAGE else . end)
+              )
+          ' backend-current.json > backend-register.json
+
+          TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://backend-register.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "arn=${TASK_DEFINITION_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: Register frontend task definition revision
+        id: frontend_task
+        shell: bash
+        env:
+          IMAGE: ${{ steps.images.outputs.frontend_image }}
+        run: |
+          set -euo pipefail
+
+          aws ecs describe-task-definition \
+            --task-definition "$FRONTEND_TASK_FAMILY" \
+            --query taskDefinition \
+            --output json > frontend-current.json
+
+          jq --arg IMAGE "$IMAGE" '
+            {
+              family,
+              taskRoleArn,
+              executionRoleArn,
+              networkMode,
+              containerDefinitions,
+              volumes,
+              placementConstraints,
+              requiresCompatibilities,
+              cpu,
+              memory,
+              runtimePlatform,
+              ephemeralStorage,
+              proxyConfiguration,
+              inferenceAccelerators,
+              ipcMode,
+              pidMode
+            }
+            | with_entries(select(.value != null))
+            | .containerDefinitions = (
+                .containerDefinitions
+                | map(if .name == "frontend" then .image = $IMAGE else . end)
+              )
+          ' frontend-current.json > frontend-register.json
+
+          TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://frontend-register.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "arn=${TASK_DEFINITION_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy backend service
+        shell: bash
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_BACKEND_SERVICE" \
+            --task-definition "${{ steps.backend_task.outputs.arn }}" \
+            --force-new-deployment \
+            --no-cli-pager > /dev/null
+
+      - name: Deploy frontend service
+        shell: bash
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_FRONTEND_SERVICE" \
+            --task-definition "${{ steps.frontend_task.outputs.arn }}" \
+            --force-new-deployment \
+            --no-cli-pager > /dev/null
+
+      - name: Wait for ECS services to stabilize
+        shell: bash
+        run: |
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_BACKEND_SERVICE" "$ECS_FRONTEND_SERVICE"
+
+      - name: Verify ECS desired and running counts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_BACKEND_SERVICE" "$ECS_FRONTEND_SERVICE" \
+            --query 'services[].{Service:serviceName,Desired:desiredCount,Running:runningCount,Pending:pendingCount,Status:status}' \
+            --output table
+
+          NOT_READY=$(aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_BACKEND_SERVICE" "$ECS_FRONTEND_SERVICE" \
+            --query 'services[?runningCount!=desiredCount || pendingCount!=`0`].serviceName' \
+            --output text)
+
+          if [ -n "$NOT_READY" ]; then
+            echo "Services not stable: $NOT_READY"
+            exit 1
+          fi
+
+      - name: Verify application health through ALB
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
+            --names "$ALB_NAME" \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+
+          curl --fail --silent --show-error \
+            --retry 10 --retry-delay 10 --retry-all-errors \
+            "http://${ALB_DNS}/" > /dev/null
+
+          curl --fail --silent --show-error \
+            --retry 10 --retry-delay 10 --retry-all-errors \
+            "http://${ALB_DNS}/actuator/health" > health.json
+
+          jq -e '.status == "UP" and .components.db.status == "UP"' health.json > /dev/null
+
+          echo "CloudTask deployment is healthy."
