@@ -5,12 +5,13 @@
 [![Backend CI](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/backend-ci.yml)
 [![Frontend CI](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/frontend-ci.yml)
 [![Terraform CI](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/terraform-ci.yml/badge.svg)](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/terraform-ci.yml)
+[![Deploy AWS](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/deploy-aws.yml/badge.svg)](https://github.com/juceliocoelho2022/cloudtask-enterprise/actions/workflows/deploy-aws.yml)
 
 > **Professional portfolio project** focused on backend engineering, cloud architecture, security, automated testing, observability, Infrastructure as Code and production-oriented delivery practices.
 
 O **CloudTask Enterprise** é uma plataforma de gerenciamento de tarefas desenvolvida como projeto de portfólio profissional para demonstrar conhecimentos de **Engenharia de Software, Java Backend, React, Cloud AWS, DevOps, CI/CD, Segurança, Banco de Dados, Testes e Observabilidade**.
 
-A aplicação já possui runtime real na AWS com **Application Load Balancer, ECS/Fargate, PostgreSQL RDS, ECR, Secrets Manager, CloudWatch Logs e Terraform Remote State em S3**.
+A aplicação já possui runtime real na AWS com **Application Load Balancer, ECS/Fargate, PostgreSQL RDS, ECR, Secrets Manager, CloudWatch Logs e Terraform Remote State em S3**. A v0.6 também possui **pipeline de Continuous Delivery validado ponta a ponta**, usando **GitHub Actions + OIDC + ECR + rolling deployment no ECS + health check pós-deploy pelo ALB**.
 
 ---
 
@@ -281,7 +282,7 @@ O GitHub Actions executa validações independentes para:
 
 ### v0.6 — Continuous Delivery
 
-A v0.6 está preparando o fluxo:
+A v0.6 implementa e valida o fluxo:
 
 ```text
 Push / Merge na main
@@ -314,7 +315,7 @@ services-stable
 ALB Health Check
 ```
 
-A autenticação GitHub → AWS utiliza **OIDC**, evitando armazenar AWS Access Keys permanentes no GitHub.
+A autenticação GitHub → AWS utiliza **OIDC**, evitando armazenar AWS Access Keys permanentes no GitHub. O primeiro deploy automatizado da v0.6 foi validado com sucesso, incluindo build/push das imagens, atualização das task definitions, rolling deployment dos serviços e health check final pelo ALB.
 
 Detalhes: [CI/CD AWS com GitHub OIDC](docs/cicd-aws.md).
 
@@ -343,10 +344,13 @@ Detalhes: [CI/CD AWS com GitHub OIDC](docs/cicd-aws.md).
 - logs do frontend no CloudWatch
 - verificação da conectividade backend → RDS através do Actuator
 
-Na implantação validada da v0.5:
+Na implantação validada da v0.6:
 
-- frontend ECS: **ACTIVE**, `1/1`
-- backend ECS: **ACTIVE**, `1/1`
+- pipeline GitHub Actions → AWS via OIDC: **SUCCESS**
+- build/push backend e frontend no ECR: **SUCCESS**
+- atualização das task definitions ECS: **SUCCESS**
+- rolling deploy backend/frontend: **SUCCESS**
+- serviços ECS estabilizados: **SUCCESS**
 - frontend pelo ALB: **HTTP 200**
 - `/actuator/health`: **UP**
 - componente PostgreSQL: **UP**
@@ -484,7 +488,7 @@ docker compose up --build -d
 | **v0.4** | ✅ Concluída | Terraform + AWS VPC + Subnets + Security Groups + ECR |
 | **v0.4.1** | ✅ Concluída | Remote Terraform State em S3 + locking nativo |
 | **v0.5** | ✅ Concluída | ECR + ECS/Fargate + RDS + ALB + Secrets Manager + CloudWatch Logs |
-| **v0.6** | 🚧 Em desenvolvimento | GitHub Actions + OIDC + ECR + rolling deploy ECS |
+| **v0.6** | ✅ Concluída | GitHub Actions + OIDC + ECR + rolling deploy ECS + health check pós-deploy |
 | **v0.7** | ⏳ Planejada | MCP Server e integração com IA |
 | **v1.0** | ⏳ Planejada | Segurança, resiliência, HTTPS, alertas e documentação final |
 
