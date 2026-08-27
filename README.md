@@ -348,16 +348,20 @@ Content-Type: application/json
 
 ## Roadmap
 
-- **v0.1 ✅** — JWT, CRUD, PostgreSQL, React e Docker
-- **v0.2 ✅** — JUnit, Mockito, Testcontainers e JaCoCo
-- **v0.3 ✅** — Micrometer, Prometheus e Grafana
-- **Social Login ✅** — Google OAuth 2.0 + GitHub OAuth App + JWT próprio
-- **v0.4 ✅** — Terraform + AWS VPC + subnets + Security Groups + ECR
-- **v0.4.1 ✅** — remote Terraform state em S3 + locking nativo
-- **v0.5 ✅** — build/push ECR + ECS/Fargate + RDS + ALB + Secrets Manager + CloudWatch Logs
-- **v0.6** — CI/CD completo com deploy automatizado
-- **v0.7** — MCP Server e integração com IA
-- **v1.0** — segurança, resiliência, alertas e documentação final
+| Versão | Status | Entrega |
+| :--- | :---: | --- |
+| **v0.1** | ✅ Concluída | JWT, CRUD, PostgreSQL, React e Docker |
+| **v0.2** | ✅ Concluída | JUnit, Mockito, Testcontainers e JaCoCo |
+| **v0.3** | ✅ Concluída | Micrometer, Prometheus e Grafana |
+| **Social Login** | ✅ Concluída | Google OAuth 2.0 + GitHub OAuth App + JWT próprio |
+| **v0.4** | ✅ Concluída | Terraform + AWS VPC + subnets + Security Groups + ECR |
+| **v0.4.1** | ✅ Concluída | Remote Terraform State em S3 + locking nativo |
+| **v0.5** | ✅ Concluída | Build/push ECR + ECS/Fargate + RDS + ALB + Secrets Manager + CloudWatch Logs |
+| **v0.6** | 🚧 Em desenvolvimento | CI/CD com GitHub Actions + OIDC + ECR + rolling deploy ECS |
+| **v0.7** | ⏳ Planejada | MCP Server e integração com IA |
+| **v1.0** | ⏳ Planejada | Segurança, resiliência, alertas e documentação final |
+
+Detalhes técnicos da v0.6: [CI/CD AWS com GitHub OIDC](docs/cicd-aws.md).
 
 ## Segurança
 
