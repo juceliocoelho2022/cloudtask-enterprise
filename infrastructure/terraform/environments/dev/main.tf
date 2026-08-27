@@ -23,12 +23,12 @@ locals {
 module "vpc" {
   source = "../../modules/vpc"
 
-  name_prefix         = local.name_prefix
-  vpc_cidr            = var.vpc_cidr
-  availability_zones  = local.availability_zones
-  public_subnet_cidrs = local.public_subnet_cidrs
+  name_prefix          = local.name_prefix
+  vpc_cidr             = var.vpc_cidr
+  availability_zones   = local.availability_zones
+  public_subnet_cidrs  = local.public_subnet_cidrs
   private_subnet_cidrs = local.private_subnet_cidrs
-  tags                = local.common_tags
+  tags                 = local.common_tags
 }
 
 module "security_groups" {
