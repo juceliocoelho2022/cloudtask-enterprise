@@ -1,8 +1,8 @@
 module "github_oidc" {
   source = "../../modules/github-oidc"
 
-  name_prefix      = local.name_prefix
-  aws_region       = var.aws_region
+  name_prefix       = local.name_prefix
+  aws_region        = var.aws_region
   github_repository = var.github_repository
   github_branch     = var.github_deploy_branch
 
