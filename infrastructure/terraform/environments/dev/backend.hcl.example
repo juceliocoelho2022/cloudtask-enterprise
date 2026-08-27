@@ -1,0 +1,5 @@
+bucket       = "SEU_BUCKET_TERRAFORM_STATE"
+key          = "cloudtask-enterprise/dev/terraform.tfstate"
+region       = "sa-east-1"
+encrypt      = true
+use_lockfile = true
