@@ -107,6 +107,12 @@ resource "aws_iam_role_policy" "deploy" {
         Resource = "*"
       },
       {
+        Sid      = "ReadAlbEndpoint"
+        Effect   = "Allow"
+        Action   = ["elasticloadbalancing:DescribeLoadBalancers"]
+        Resource = "*"
+      },
+      {
         Sid      = "PassOnlyCloudTaskEcsRoles"
         Effect   = "Allow"
         Action   = ["iam:PassRole"]
