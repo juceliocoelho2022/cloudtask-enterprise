@@ -3,6 +3,11 @@ output "alb_security_group_id" {
   value       = aws_security_group.alb.id
 }
 
+output "frontend_security_group_id" {
+  description = "ID do Security Group do frontend/ECS."
+  value       = aws_security_group.frontend.id
+}
+
 output "backend_security_group_id" {
   description = "ID do Security Group do backend/ECS."
   value       = aws_security_group.backend.id
