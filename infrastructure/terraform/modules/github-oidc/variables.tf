@@ -13,6 +13,16 @@ variable "github_repository" {
   type        = string
 }
 
+variable "github_owner_id" {
+  description = "ID imutável do owner do repositório GitHub usado no subject OIDC."
+  type        = string
+}
+
+variable "github_repository_id" {
+  description = "ID imutável do repositório GitHub usado no subject OIDC."
+  type        = string
+}
+
 variable "github_branch" {
   description = "Branch autorizada a realizar deploy via OIDC."
   type        = string
