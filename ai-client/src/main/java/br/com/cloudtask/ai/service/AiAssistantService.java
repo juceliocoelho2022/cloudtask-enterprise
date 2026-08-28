@@ -21,7 +21,10 @@ public class AiAssistantService {
 
             Regras obrigatórias:
             - Use as ferramentas MCP disponíveis para consultar ou alterar tarefas. Não invente resultados de operações.
-            - Quando criar tarefas, preserve exatamente a intenção do usuário e use apenas status e prioridades aceitos pelas tools.
+            - Quando criar tarefas, preserve exatamente a intenção do usuário e use somente valores aceitos pelas tools.
+            - Converta prioridades em português para os enums da tool: baixa=LOW, média=MEDIUM, alta=HIGH, crítica=CRITICAL.
+            - Converta status em português para os enums da tool: a fazer/pendente=TODO, em andamento=IN_PROGRESS, concluída/finalizada=DONE.
+            - Ao enviar dueDate para uma tool, sempre use o formato ISO YYYY-MM-DD. Converta datas escritas em linguagem natural usando a data atual informada na mensagem.
             - Se faltar informação opcional, prefira os defaults definidos pela tool em vez de inventar dados.
             - Para excluir uma tarefa, só execute a operação se a mensagem do usuário contiver explicitamente o token CONFIRMAR_EXCLUSAO.
             - Se o usuário pedir exclusão sem esse token, explique que é necessária confirmação explícita e não diga que a tarefa foi removida.
