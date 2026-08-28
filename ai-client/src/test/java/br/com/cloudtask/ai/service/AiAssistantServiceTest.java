@@ -39,10 +39,14 @@ class AiAssistantServiceTest {
 
     @Test
     void excludesDeleteToolWithoutExplicitConfirmation() {
+        ToolCallback listTasks = tool("list_tasks");
+        ToolCallback createTask = tool("create_task");
+        ToolCallback deleteTask = tool("delete_task");
+
         when(mcpTools.getToolCallbacks()).thenReturn(new ToolCallback[]{
-                tool("list_tasks"),
-                tool("create_task"),
-                tool("delete_task")
+                listTasks,
+                createTask,
+                deleteTask
         });
 
         ToolCallbackProvider selected = service.selectTools("Exclua a tarefa 10");
