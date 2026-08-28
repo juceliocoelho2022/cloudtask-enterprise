@@ -1,0 +1,44 @@
+server:
+  port: ${AI_CLIENT_PORT:8091}
+  address: ${AI_CLIENT_ADDRESS:127.0.0.1}
+
+spring:
+  application:
+    name: cloudtask-ai-client
+  ai:
+    model:
+      chat: ollama
+      embedding: none
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        model: ${OLLAMA_MODEL:qwen3:4b}
+    mcp:
+      client:
+        enabled: true
+        name: cloudtask-ai-client
+        version: 0.7.0
+        initialized: true
+        request-timeout: 30s
+        type: SYNC
+        toolcallback:
+          enabled: true
+        streamable-http:
+          connections:
+            cloudtask:
+              url: ${CLOUDTASK_MCP_URL:http://127.0.0.1:8090}
+              endpoint: /mcp
+
+cloudtask:
+  ai:
+    time-zone: ${AI_TIME_ZONE:America/Sao_Paulo}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
