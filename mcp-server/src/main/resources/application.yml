@@ -1,0 +1,39 @@
+server:
+  port: ${MCP_SERVER_PORT:8090}
+  address: ${MCP_SERVER_ADDRESS:127.0.0.1}
+
+spring:
+  application:
+    name: cloudtask-mcp-server
+  ai:
+    mcp:
+      server:
+        name: cloudtask-enterprise-mcp
+        version: 0.7.0
+        protocol: STREAMABLE
+        type: SYNC
+        instructions: "Use these tools to manage tasks that belong to the authenticated CloudTask user."
+        capabilities:
+          tool: true
+          resource: false
+          prompt: false
+          completion: false
+        annotation-scanner:
+          enabled: true
+        streamable-http:
+          mcp-endpoint: /mcp
+
+cloudtask:
+  api:
+    base-url: ${CLOUDTASK_API_URL:http://localhost:8080}
+    token: ${CLOUDTASK_API_TOKEN:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
