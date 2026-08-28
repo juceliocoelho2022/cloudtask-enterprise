@@ -9,12 +9,19 @@ import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Component;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 
 @Component
 public class CloudTaskTools {
+
+    private static final Locale PT_BR = Locale.forLanguageTag("pt-BR");
+    private static final DateTimeFormatter BR_DATE = DateTimeFormatter.ofPattern("d/M/uuuu", PT_BR);
+    private static final DateTimeFormatter BR_LONG_DATE = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' uuuu", PT_BR);
 
     private final CloudTaskApiClient apiClient;
 
@@ -63,7 +70,7 @@ public class CloudTaskTools {
                     required = false
             ) String priority,
             @McpToolParam(
-                    description = "Optional due date in ISO format YYYY-MM-DD.",
+                    description = "Optional due date. Prefer ISO format YYYY-MM-DD.",
                     required = false
             ) String dueDate
     ) {
@@ -138,21 +145,17 @@ public class CloudTaskTools {
 
     private static TaskStatus parseStatus(String value, TaskStatus defaultValue) {
         if (value == null || value.isBlank()) {
-            if (defaultValue != null) {
-                return defaultValue;
-            }
-            return null;
+            return defaultValue;
         }
 
-        try {
-            return TaskStatus.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        }
-        catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException(
-                    "Invalid status. Use TODO, IN_PROGRESS or DONE",
-                    ex
+        return switch (normalizeEnumToken(value)) {
+            case "TODO", "A_FAZER", "PENDENTE" -> TaskStatus.TODO;
+            case "IN_PROGRESS", "EM_ANDAMENTO", "EM_PROGRESSO" -> TaskStatus.IN_PROGRESS;
+            case "DONE", "CONCLUIDO", "CONCLUIDA", "FINALIZADO", "FINALIZADA" -> TaskStatus.DONE;
+            default -> throw new IllegalArgumentException(
+                    "Invalid status. Use TODO, IN_PROGRESS or DONE"
             );
-        }
+        };
     }
 
     private static TaskPriority parsePriority(String value, TaskPriority defaultValue) {
@@ -160,15 +163,15 @@ public class CloudTaskTools {
             return defaultValue;
         }
 
-        try {
-            return TaskPriority.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        }
-        catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException(
-                    "Invalid priority. Use LOW, MEDIUM, HIGH or CRITICAL",
-                    ex
+        return switch (normalizeEnumToken(value)) {
+            case "LOW", "BAIXA" -> TaskPriority.LOW;
+            case "MEDIUM", "MEDIA" -> TaskPriority.MEDIUM;
+            case "HIGH", "ALTA" -> TaskPriority.HIGH;
+            case "CRITICAL", "CRITICA" -> TaskPriority.CRITICAL;
+            default -> throw new IllegalArgumentException(
+                    "Invalid priority. Use LOW, MEDIUM, HIGH or CRITICAL"
             );
-        }
+        };
     }
 
     private static LocalDate parseDueDate(String value) {
@@ -176,12 +179,33 @@ public class CloudTaskTools {
             return null;
         }
 
-        try {
-            return LocalDate.parse(value.trim());
+        String normalized = value.trim();
+        for (DateTimeFormatter formatter : List.of(
+                DateTimeFormatter.ISO_LOCAL_DATE,
+                BR_DATE,
+                BR_LONG_DATE
+        )) {
+            try {
+                return LocalDate.parse(normalized, formatter);
+            }
+            catch (DateTimeParseException ignored) {
+                // Try the next supported format.
+            }
         }
-        catch (RuntimeException ex) {
-            throw new IllegalArgumentException("Invalid due date. Use YYYY-MM-DD", ex);
-        }
+
+        throw new IllegalArgumentException(
+                "Invalid due date. Use YYYY-MM-DD, DD/MM/YYYY or 'DD de mês de YYYY'"
+        );
+    }
+
+    private static String normalizeEnumToken(String value) {
+        String withoutAccents = Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+
+        return withoutAccents
+                .toUpperCase(Locale.ROOT)
+                .replace('-', '_')
+                .replace(' ', '_');
     }
 
     private static String normalizeOptionalText(String value) {
